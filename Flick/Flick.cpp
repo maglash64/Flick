@@ -12,10 +12,13 @@
 #define	HK_SWIPE_RIGHT		902
 #define	HK_SWIPE_TOP		903
 #define	HK_SWIPE_BOTTOM		904
-#define	HK_SWITCH_LEFT		905
-#define	HK_SWITCH_RIGHT		906
+#define	HK_SWIPE_MIDDLE		905
+#define	HK_SWITCH_LEFT		906
+#define	HK_SWITCH_RIGHT		907
+
 
 int	isWindowVisible = false;
+HWND hwndApp;
 
 LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -29,11 +32,11 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (isWindowVisible)
 			{
 				isWindowVisible = false;
-				ShowWindow(hwnd, SW_HIDE);
+				ShowWindow(hwndApp, SW_HIDE);
 			}
 			else
 			{
-				ShowWindow(hwnd, SW_SHOW);
+				ShowWindow(hwndApp, SW_SHOW);
 				isWindowVisible = true;
 			}
 		}
@@ -41,21 +44,30 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			activeWindow = GetForegroundWindow();
 			MoveWindow(activeWindow, 0, 0, SCRW/2, SCRH, 1);
+			ShowWindow(activeWindow, SW_SHOWNORMAL);
 		}
 		if (wParam == HK_SWIPE_RIGHT)
 		{
 			activeWindow = GetForegroundWindow();
 			MoveWindow(activeWindow, SCRW/2, 0, SCRW/2, SCRH, 1);
+			ShowWindow(activeWindow, SW_SHOWNORMAL);
 		}
 		if (wParam == HK_SWIPE_TOP)
 		{
 			activeWindow = GetForegroundWindow();
 			MoveWindow(activeWindow, 0, 0, SCRW, SCRH/2, 1);
+			ShowWindow(activeWindow, SW_SHOWNORMAL);
 		}
 		if (wParam == HK_SWIPE_BOTTOM)
 		{
 			activeWindow = GetForegroundWindow();
 			MoveWindow(activeWindow, 0, SCRH/2, SCRW, SCRH/2, 1);
+			ShowWindow(activeWindow, SW_SHOWNORMAL);
+		}
+		if (wParam == HK_SWIPE_MIDDLE)
+		{
+			activeWindow = GetForegroundWindow();
+			ShowWindow(activeWindow, SW_MAXIMIZE);
 		}
 	}break;
 	case WM_QUIT:
@@ -67,7 +79,6 @@ LRESULT CALLBACK wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 int WINAPI wWinMain(HINSTANCE hin, HINSTANCE hPin, LPWSTR lpcmdline, int nshow)
 {
-	HWND hwnd;
 	MSG	msg;
 	WNDCLASSEX wcex = { 0 };
 
@@ -82,16 +93,17 @@ int WINAPI wWinMain(HINSTANCE hin, HINSTANCE hPin, LPWSTR lpcmdline, int nshow)
 		return 1;
 	}
 
-	if (!(hwnd = CreateWindowW(wcex.lpszClassName, L"Flick", WS_EX_TOPMOST | WS_POPUP, SCRW / 2 - WNDW / 2, SCRH / 2 - WNDH / 2, WNDW, WNDH, HWND_DESKTOP, 0, hin, 0)))
+	if (!(hwndApp = CreateWindowW(wcex.lpszClassName, L"Flick", WS_EX_TOPMOST | WS_POPUP, SCRW / 2 - WNDW / 2, SCRH / 2 - WNDH / 2, WNDW, WNDH, HWND_DESKTOP, 0, hin, 0)))
 	{
 		MessageBoxW(0, L"Failed to create a window!", L"Error", MB_OK|MB_ICONERROR);
 	}
 	
-	RegisterHotKey(hwnd, HK_TOGGLE_VIEW, MOD_CONTROL,VK_ESCAPE);
-	RegisterHotKey(hwnd, HK_SWIPE_LEFT, MOD_CONTROL | MOD_ALT, VK_LEFT);
-	RegisterHotKey(hwnd, HK_SWIPE_RIGHT, MOD_CONTROL | MOD_ALT, VK_RIGHT);
-	RegisterHotKey(hwnd, HK_SWIPE_TOP, MOD_CONTROL | MOD_ALT, VK_UP);
-	RegisterHotKey(hwnd, HK_SWIPE_BOTTOM, MOD_CONTROL | MOD_ALT, VK_DOWN);
+	RegisterHotKey(hwndApp, HK_TOGGLE_VIEW, MOD_ALT,'x');
+	RegisterHotKey(hwndApp, HK_SWIPE_LEFT, MOD_CONTROL | MOD_ALT, VK_NUMPAD4);
+	RegisterHotKey(hwndApp, HK_SWIPE_RIGHT, MOD_CONTROL | MOD_ALT, VK_NUMPAD6);
+	RegisterHotKey(hwndApp, HK_SWIPE_TOP, MOD_CONTROL | MOD_ALT, VK_NUMPAD8);
+	RegisterHotKey(hwndApp, HK_SWIPE_BOTTOM, MOD_CONTROL | MOD_ALT, VK_NUMPAD2);
+	RegisterHotKey(hwndApp, HK_SWIPE_MIDDLE, MOD_CONTROL | MOD_ALT, VK_NUMPAD5);
 
 	while (GetMessage(&msg,0,0,0)>0)
 	{
